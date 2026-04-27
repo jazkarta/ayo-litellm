@@ -47,19 +47,19 @@ class MyCustomHandler(CustomLogger):
             'response': ai_response,
         }
 
-        api_base_url = os.getenv("API_BASE_URL")
+        # api_base_url = os.getenv("API_BASE_URL")
 
-        print(f"API BASE URL {api_base_url}")
-        if api_base_url:
-            api_url = f"{api_base_url.rstrip('/')}/api/chats/"
-            try:
-                async with httpx.AsyncClient() as client:
-                    response = await client.post(api_url, json=payload)
-                    response.raise_for_status()
-                    print(f"Successfully sent payload to {api_url}")
-            except Exception as e:
-                print(f"Error calling API {api_url}: {e}")
-        else:
-            print("API_BASE_URL not set in environment variables.")
+        # print(f"API BASE URL {api_base_url}")
+        # if api_base_url:
+        #     api_url = f"{api_base_url.rstrip('/')}/api/chats/"
+        #     try:
+        #         async with httpx.AsyncClient() as client:
+        #             response = await client.post(api_url, json=payload)
+        #             response.raise_for_status()
+        #             print(f"Successfully sent payload to {api_url}")
+        #     except Exception as e:
+        #         print(f"Error calling API {api_url}: {e}")
+        # else:
+        #     print("API_BASE_URL not set in environment variables.")
 
 customHandler = MyCustomHandler()
