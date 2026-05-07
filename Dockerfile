@@ -34,6 +34,7 @@ RUN ls -1 dist/*.whl | head -1
 RUN pip install dist/*.whl
 
 # install dependencies as wheels
+# --- ORIGINAL ---
 RUN pip wheel --no-cache-dir --wheel-dir=/wheels/ -r requirements.txt
 
 # ensure pyjwt is used, not jwt
@@ -83,6 +84,18 @@ COPY --from=builder /wheels/ /wheels/
 
 # Install the built wheel using pip; again using a wildcard if it's the only file
 RUN pip install *.whl /wheels/* --no-index --find-links=/wheels/ && rm -f *.whl && rm -rf /wheels
+
+# --- CHANGE: overwrite installed proxy-extras migrations + schema with fork's local copies ---
+# This ensures the container has all fork-specific migrations (e.g. 20260228170127_support_team_based_guardrails)
+# without fighting pip's dependency resolver over conflicting 0.1.x wheels.
+COPY --from=builder /app/litellm-proxy-extras/litellm_proxy_extras/migrations /tmp/fork_migrations/
+COPY --from=builder /app/litellm-proxy-extras/litellm_proxy_extras/schema.prisma /tmp/fork_schema.prisma
+RUN PROXY_EXTRAS_DIR=$(python3 -c "import litellm_proxy_extras, os; print(os.path.dirname(litellm_proxy_extras.__file__))") && \
+    rm -rf "$PROXY_EXTRAS_DIR/migrations" && \
+    cp -r /tmp/fork_migrations "$PROXY_EXTRAS_DIR/migrations" && \
+    cp /tmp/fork_schema.prisma "$PROXY_EXTRAS_DIR/schema.prisma" && \
+    rm -rf /tmp/fork_migrations /tmp/fork_schema.prisma
+# --- END CHANGE ---
 
 # Replace the nodejs-wheel-binaries bundled node with the system node (fixes CVE-2025-55130)
 RUN NODEJS_WHEEL_NODE=$(find /usr/lib -path "*/nodejs_wheel/bin/node" 2>/dev/null) && \
