@@ -54,6 +54,7 @@ class OpenAIModerationGuardrail(OpenAIGuardrailBase, CustomGuardrail):
         model: Optional[
             Literal["omni-moderation-latest", "text-moderation-latest"]
         ] = None,
+        violation_message_template: Optional[str] = None,
         **kwargs,
     ):
         """Initialize OpenAI Moderation guardrail handler."""
@@ -81,6 +82,7 @@ class OpenAIModerationGuardrail(OpenAIGuardrailBase, CustomGuardrail):
         self.model: Literal["omni-moderation-latest", "text-moderation-latest"] = (
             model or "omni-moderation-latest"
         )
+        self.violation_message_template = violation_message_template
 
         if not self.api_key:
             raise ValueError(
@@ -140,17 +142,20 @@ class OpenAIModerationGuardrail(OpenAIGuardrailBase, CustomGuardrail):
         return OpenAIModerationResponse(**response.json())
 
     def _check_moderation_result(
-        self, moderation_response: "OpenAIModerationResponse"
+        self,
+        moderation_response: "OpenAIModerationResponse",
+        request_data: Optional[dict] = None,
     ) -> None:
         """
         Check if the moderation response indicates harmful content and raise exception if needed.
+        When violation_message_template is configured, raises ModifyResponseException so the
+        proxy returns HTTP 200 with the custom message instead of a raw HTTP error.
         """
         if not moderation_response.results:
             return
 
         result = moderation_response.results[0]
         if result.flagged:
-            # Build detailed violation information
             violated_categories = []
             if result.categories:
                 for category, is_violated in result.categories.items():
@@ -166,6 +171,13 @@ class OpenAIModerationGuardrail(OpenAIGuardrailBase, CustomGuardrail):
                 "OpenAI Moderation: Content flagged for violations: %s",
                 violation_details,
             )
+
+            if self.violation_message_template:
+                self.raise_passthrough_exception(
+                    violation_message=self.violation_message_template,
+                    request_data=request_data or {},
+                    detection_info=violation_details,
+                )
 
             raise HTTPException(
                 status_code=400,
@@ -224,7 +236,7 @@ class OpenAIModerationGuardrail(OpenAIGuardrailBase, CustomGuardrail):
         moderation_response = await self.async_make_request(input_text=text_to_moderate)
 
         # Check if content is flagged and raise exception if needed
-        self._check_moderation_result(moderation_response)
+        self._check_moderation_result(moderation_response, request_data=request_data)
 
         # Moderation doesn't modify content, just blocks - return inputs unchanged
         return inputs
