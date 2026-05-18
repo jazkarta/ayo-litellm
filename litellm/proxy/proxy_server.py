@@ -6546,6 +6546,28 @@ async def chat_completion(  # noqa: PLR0915
         _chat_response.choices[0].finish_reason = "content_filter"  # type: ignore
 
         if data.get("stream", None) is not None and data["stream"] is True:
+            _logging_obj = data.get("litellm_logging_obj", None)
+            if _logging_obj is None:
+                # Pre-call guardrail fired before LLM logging was initialized.
+                # Bypass CustomStreamWrapper to avoid NoneType errors on model_call_details.
+                # Capture from 'e' now — Python 3 deletes the except-var after the block exits.
+                _violation_msg = e.message
+                _msg_id = f"chatcmpl-{uuid.uuid4().hex[:8]}"
+                _model_name = e.model or data.get("model", "")
+                _created = int(time.time())
+
+                async def _violation_stream(
+                    msg=_violation_msg, mid=_msg_id, model=_model_name, created=_created
+                ):
+                    yield f"data: {json.dumps({'id': mid, 'object': 'chat.completion.chunk', 'created': created, 'model': model, 'choices': [{'index': 0, 'delta': {'role': 'assistant', 'content': msg}, 'finish_reason': None}]})}\n\n"
+                    yield f"data: {json.dumps({'id': mid, 'object': 'chat.completion.chunk', 'created': created, 'model': model, 'choices': [{'index': 0, 'delta': {}, 'finish_reason': 'content_filter'}]})}\n\n"
+                    yield "data: [DONE]\n\n"
+
+                return StreamingResponse(
+                    _violation_stream(),
+                    media_type="text/event-stream",
+                    status_code=200,
+                )
             _iterator = litellm.utils.ModelResponseIterator(
                 model_response=_chat_response, convert_to_delta=True
             )
@@ -6553,7 +6575,7 @@ async def chat_completion(  # noqa: PLR0915
                 completion_stream=_iterator,
                 model=e.model,
                 custom_llm_provider="cached_response",
-                logging_obj=data.get("litellm_logging_obj", None),
+                logging_obj=_logging_obj,
             )
             selected_data_generator = select_data_generator(
                 response=_streaming_response,

@@ -100,7 +100,11 @@ class CustomStreamWrapper:
         self._stream_created_time: float = time.time()
 
         litellm_params: GenericLiteLLMParams = GenericLiteLLMParams(
-            **self.logging_obj.model_call_details.get("litellm_params", {})
+            **(
+                self.logging_obj.model_call_details.get("litellm_params", {})
+                if self.logging_obj is not None
+                else {}
+            )
         )
         self.merge_reasoning_content_in_choices: bool = (
             litellm_params.merge_reasoning_content_in_choices or False
@@ -130,8 +134,10 @@ class CustomStreamWrapper:
 
         _api_base = get_api_base(
             model=model or "",
-            optional_params=self.logging_obj.model_call_details.get(
-                "litellm_params", {}
+            optional_params=(
+                self.logging_obj.model_call_details.get("litellm_params", {})
+                if self.logging_obj is not None
+                else {}
             ),
         )
 
