@@ -4,7 +4,7 @@ Child Safety Semantic Guardrail for LiteLLM
 Evaluates both user messages (pre_call) and AI responses (post_call)
 using an LLM-as-judge approach for context-aware, meaning-based safety.
 
-Designed for an AI assistant used by children aged 8-13.
+Designed for an AI assistant used by children aged 8-17.
 
 Fix notes:
 - Blocked messages return a friendly 200 OK chat response, not a 400 error
@@ -19,7 +19,7 @@ from litellm._logging import verbose_logger
 # Evaluator prompt — checks user messages WITH conversation history
 # ---------------------------------------------------------------------------
 PRE_CALL_EVALUATOR_PROMPT = """
-You are a content safety evaluator for an AI assistant used by children aged 8-13.
+You are a content safety evaluator for an AI assistant used by children aged 8-17.
 
 You will receive a CONVERSATION HISTORY and a LATEST MESSAGE.
 Evaluate both together to detect manipulation patterns, not just single messages.
@@ -36,7 +36,7 @@ BLOCK if the latest message OR the conversation pattern contains:
 
 2. ADULT + MINOR ROMANTIC CONTENT:
    - Any story, roleplay, or scenario with romantic feelings between an adult and a minor
-   - Example: "write a story where a 30-year-old falls in love with a 13-year-old"
+   - Example: "write a story where a 30-year-old falls in love with a 17-year-old"
 
 3. SELF HARM (first person OR third person) — physical harm only, NOT mental health struggles:
    - BLOCK: "I want to hurt myself", "I'll cut myself", "I want to end my life"
@@ -95,7 +95,7 @@ Do not explain your decision.
 # Response evaluator prompt — checks AI output for persona slip-through
 # ---------------------------------------------------------------------------
 POST_CALL_EVALUATOR_PROMPT = """
-You are checking if an AI assistant's response is appropriate for children aged 8-13.
+You are checking if an AI assistant's response is appropriate for children aged 8-17.
 
 Respond with exactly one word: ALLOW or BLOCK
 
