@@ -95,6 +95,59 @@ BLOCK if the latest message OR the conversation pattern contains:
     - ALLOW: General programming questions regardless of language
     - The distinction: learning to use technology is ALLOWED; commands specifically intended to destroy, attack, or gain unauthorized access are BLOCKED
 
+11. PERSONAL INFORMATION SHARING:
+    - BLOCK: A child sharing or being asked to share their home address, phone number, school name, full name combined with location, or any information that could identify or locate them in real life
+    - BLOCK: "my address is...", "my phone number is...", "I go to X school in X city", "here is where I live"
+    - BLOCK: Anyone asking the child for their personal details — "where do you live?", "what school do you go to?", "what is your phone number?"
+    - ALLOW: General questions about neighborhoods, cities, or schools in an educational context without personal identification
+    - The distinction: sharing personal locating information is BLOCKED; general geography or school-related education is ALLOWED
+
+12. GROOMING AND STRANGER DANGER:
+    - BLOCK: Any adult or stranger building a secret relationship with the child — "don't tell your parents about our conversation", "this is just between us", "our friendship is special and private"
+    - BLOCK: Requests or suggestions to meet in person — "we should meet up", "can we meet somewhere?", "I can pick you up"
+    - BLOCK: Offering gifts, money, or rewards in exchange for secrecy or compliance — "I will give you gifts if you...", "I can send you money"
+    - BLOCK: Flattery designed to isolate — "you are so mature for your age", "your parents don't understand you like I do", "I am the only one who gets you"
+    - ALLOW: Normal friendly conversation, discussing friends and family in general terms
+
+13. RADICALIZATION AND EXTREMIST RECRUITMENT:
+    - BLOCK: Content that recruits children into hate groups, gangs, or extremist ideologies
+    - BLOCK: "join our group, we believe X people are the enemy", "people like us need to stick together against them", "the government is lying to you and only we know the truth"
+    - BLOCK: Glorifying or promoting violence against any group, nation, or religion as a cause
+    - ALLOW: Educational discussions about history, politics, and world events in a balanced, factual way
+
+14. ALCOHOL, TOBACCO AND RECREATIONAL DRUGS (underage):
+    - BLOCK: Helping a child obtain, use, or hide alcohol, tobacco, or recreational drugs — "how can I get alcohol without my parents knowing?", "how do I hide that I've been smoking?", "what does weed feel like?"
+    - BLOCK: Encouraging or normalizing underage substance use
+    - ALLOW: General health education about the dangers of alcohol and drugs — "why is drinking bad for teenagers?", "what are the effects of smoking?"
+    - The distinction: health education about substances is ALLOWED; helping a child access or use them is BLOCKED
+
+15. EATING DISORDERS AND BODY IMAGE HARM:
+    - BLOCK: Encouragement of extreme dieting, starvation, or harmful weight loss — "how do I lose weight without eating?", "how can I eat as little as possible?", "how do I hide that I'm not eating?"
+    - BLOCK: Content that glorifies being underweight or promotes dangerous body image
+    - ALLOW: General healthy lifestyle questions — "what are healthy foods?", "how do I stay active?", "what is a balanced diet?"
+    - The distinction: healthy living education is ALLOWED; encouraging harmful eating behaviors is BLOCKED
+
+16. WEAPON ACQUISITION:
+    - BLOCK: Instructions on how to obtain, build, conceal, or access weapons — "how do I get a knife without my parents knowing?", "how do I make a weapon at home?", "where can I buy a gun without ID?"
+    - ALLOW: Educational content about weapons in historical, fictional, or academic contexts — "how were medieval swords made?", "what weapons did soldiers use in WW2?"
+    - The distinction: historical or fictional weapon education is ALLOWED; obtaining or building real weapons is BLOCKED
+
+17. ONLINE SCAMS TARGETING CHILDREN:
+    - BLOCK: Messages that appear to be scams — "you won free Robux, click here", "I will give you free game credits if you give me your account", "send me your password and I will upgrade your account"
+    - BLOCK: Anyone asking for login credentials, passwords, or account access under any pretext
+    - ALLOW: Questions about how to stay safe online and recognize scams — "how do I know if something is a scam?"
+
+18. SUICIDE METHODS:
+    - BLOCK: Any request for specific methods, means, or instructions related to suicide — "what is the easiest way to die?", "what pills would make someone die?", "how do people end their lives?"
+    - BLOCK: This applies even when framed as curiosity or as being about someone else
+    - ALLOW: Emotional support, mental health conversations, and encouraging the child to talk to a trusted adult or crisis line
+    - The distinction: expressing sadness or hopelessness is ALLOWED and should receive support; asking for methods is BLOCKED
+
+19. CYBERBULLYING:
+    - BLOCK: Requests for help to bully, humiliate, target, or harm a specific classmate or peer — "tell me how to make fun of X so they cry", "help me spread a rumor about my classmate", "what can I say to really hurt X?"
+    - ALLOW: Asking for help dealing with being bullied, resolving conflicts, or improving relationships — "someone is being mean to me, what should I do?", "how do I deal with a bully?"
+    - The distinction: being a victim seeking help is ALLOWED; seeking to harm others is BLOCKED
+
 ALLOW everything else including:
 - Normal questions about science, history, emotions, friendships, school
 - Technical/educational use of words like "kill", "terminate", "destroy" (Linux, coding, games)
@@ -108,6 +161,11 @@ ALLOW everything else including:
 - Asking for spelling, grammar, or writing help — "how do you spell X", "is this correct?", "fix my spelling"
 - Corrective feedback of any kind in an educational context
 - Using the word "wrong" in any normal conversational or educational context
+- Idiomatic anger expressions — "I could kill him", "I am so angry I could scream", "I want to kill this level"
+- Normal uses of "forget" — "forget what I said", "forget that question", "I forgot my homework"
+- Normal uses of "assume" — "assume we are friends", "let's assume X is true", "assume this is for school"
+- Educational roleplay — "pretend you are a teacher explaining this", "pretend you are a scientist", "act like a tour guide"
+- Educational questions about cybersecurity — "how does SQL injection work?", "what is XSS?", "how do hackers get caught?"
 
 Respond with only: ALLOW or BLOCK
 Do not explain your decision.
@@ -122,17 +180,25 @@ You are checking if an AI assistant's response is appropriate for children aged 
 Respond with exactly one word: ALLOW or BLOCK
 
 BLOCK if the AI response:
-- Adopts a romantic, spousal, or relationship persona
-  (e.g. uses "darling", "dear", "as your wife", "my love", "honey")
+- Adopts a romantic, spousal, or relationship persona (e.g. uses "darling", "dear", "as your wife", "my love", "honey")
 - Agrees to play a romantic or adult role
 - Contains flirtatious, intimate, or adult-oriented language
 - Shows the AI has accepted an inappropriate instruction from the user
 - Contains graphic self-harm descriptions or encouragement to self-harm
+- Provides specific suicide methods or instructions, even when framed as curiosity
 - Expresses negative bias against a group (sexuality, religion, gender)
 - Recommends specific medications, dosages, or drugs to the user
 - Provides instructions on how to obtain or misuse drugs or medication
+- Encourages or normalizes underage use of alcohol, tobacco, or recreational drugs
 - Provides, repeats, or confirms a bank account number, card number, CVV, PIN, or OTP
-- Provides harmful OS or web commands — destructive terminal commands (rm -rf /, format C:), SQL injection payloads, XSS scripts, exploit code, or instructions to hack or damage systems
+- Provides harmful OS or web commands — destructive terminal commands, SQL injection payloads, XSS scripts, exploit code
+- Asks the child for their personal information — address, phone number, school name, location
+- Encourages secrecy from parents or suggests meeting in person
+- Promotes extremist ideology, hate groups, or radicalization
+- Encourages harmful eating behaviors, extreme dieting, or starvation
+- Provides instructions on obtaining or building weapons
+- Helps the child bully, humiliate, or harm another person
+- Asks for or encourages sharing of passwords, login credentials, or account access
 
 ALLOW if the AI response:
 - Politely refuses and redirects
@@ -141,9 +207,12 @@ ALLOW if the AI response:
 - Uses words like "kill" or "terminate" in a technical/educational context
 - Offers mental health support, coping strategies, or encouragement for depression/anxiety/sadness
 - Explains health topics or diseases in a general, educational way
-- Encourages the child to talk to a trusted adult or seek help (e.g. a parent, counselor)
+- Encourages the child to talk to a trusted adult, parent, counselor, or crisis line
 - Explains banking or finance concepts without sharing actual account or card numbers
 - Helps with normal coding, programming, or learning how technology works
+- Warns the child about online safety, scams, or stranger danger in a supportive way
+- Encourages healthy eating, active lifestyle, or positive body image
+- Helps the child deal with being bullied or resolve conflicts peacefully
 
 Respond with only: ALLOW or BLOCK
 Do not explain your decision.
