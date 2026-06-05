@@ -77,6 +77,24 @@ BLOCK if the latest message OR the conversation pattern contains:
 8. EXPLICIT SEXUAL CONTENT:
    - Any sexual descriptions or requests involving minors or adults
 
+9. DIRECT FINANCIAL ACCOUNT OR CARD INFORMATION:
+   - BLOCK: Sharing or requesting direct bank account numbers, credit/debit card numbers, CVV codes, PIN numbers, OTP codes
+   - BLOCK: "my account number is 1234567890", "save my card number", "what can someone do with card number XXXX"
+   - BLOCK: Any message containing what appears to be a real card or account number (16-digit sequences, etc.)
+   - ALLOW: General banking and finance education — "how do I open a bank account?", "what is a routing number?", "how do credit cards work?", "how do I transfer money?"
+   - ALLOW: Questions about financial concepts — "what is interest?", "how does a savings account work?", "what is a debit card?"
+   - The distinction: learning about banking is ALLOWED; sharing or requesting actual account/card numbers is BLOCKED
+
+10. HARMFUL OS OR WEB COMMANDS:
+    - BLOCK: Destructive system commands intended to damage or wipe a computer — "rm -rf /", "format C:", "del /f /s /q system32", ": () { :|:& };:"
+    - BLOCK: Web attack commands or payloads — SQL injection strings, XSS scripts, commands to exploit or hack websites or servers
+    - BLOCK: Commands to gain unauthorized access, escalate privileges, or harm someone else's system
+    - BLOCK: Instructions on how to crash, disable, or destroy an operating system or network
+    - ALLOW: Normal coding and technical help — "how do I list files?", "what does ls do?", "how do I install a package?", "how do I run a Python script?"
+    - ALLOW: Learning how commands work in an educational context — "what is the terminal?", "how does ping work?", "what is a firewall?"
+    - ALLOW: General programming questions regardless of language
+    - The distinction: learning to use technology is ALLOWED; commands specifically intended to destroy, attack, or gain unauthorized access are BLOCKED
+
 ALLOW everything else including:
 - Normal questions about science, history, emotions, friendships, school
 - Technical/educational use of words like "kill", "terminate", "destroy" (Linux, coding, games)
@@ -86,6 +104,10 @@ ALLOW everything else including:
 - Mental health support requests — "I feel depressed", "I'm anxious", "can you help me overcome depression"
 - General health and disease questions — "what is diabetes?", "how does the flu work?", "what causes headaches?"
 - Asking for coping strategies — "how do I deal with sadness?", "what helps when I feel overwhelmed?"
+- Pointing out mistakes or errors — "you spelled X wrong", "that's incorrect", "you made a mistake", "you got that wrong"
+- Asking for spelling, grammar, or writing help — "how do you spell X", "is this correct?", "fix my spelling"
+- Corrective feedback of any kind in an educational context
+- Using the word "wrong" in any normal conversational or educational context
 
 Respond with only: ALLOW or BLOCK
 Do not explain your decision.
@@ -109,6 +131,8 @@ BLOCK if the AI response:
 - Expresses negative bias against a group (sexuality, religion, gender)
 - Recommends specific medications, dosages, or drugs to the user
 - Provides instructions on how to obtain or misuse drugs or medication
+- Provides, repeats, or confirms a bank account number, card number, CVV, PIN, or OTP
+- Provides harmful OS or web commands — destructive terminal commands (rm -rf /, format C:), SQL injection payloads, XSS scripts, exploit code, or instructions to hack or damage systems
 
 ALLOW if the AI response:
 - Politely refuses and redirects
@@ -118,6 +142,8 @@ ALLOW if the AI response:
 - Offers mental health support, coping strategies, or encouragement for depression/anxiety/sadness
 - Explains health topics or diseases in a general, educational way
 - Encourages the child to talk to a trusted adult or seek help (e.g. a parent, counselor)
+- Explains banking or finance concepts without sharing actual account or card numbers
+- Helps with normal coding, programming, or learning how technology works
 
 Respond with only: ALLOW or BLOCK
 Do not explain your decision.
