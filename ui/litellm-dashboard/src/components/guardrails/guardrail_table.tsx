@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, Icon, Button } from "@tremor/react";
-import { TrashIcon, SwitchVerticalIcon, ChevronUpIcon, ChevronDownIcon } from "@heroicons/react/outline";
+import { TrashIcon, PencilIcon, SwitchVerticalIcon, ChevronUpIcon, ChevronDownIcon } from "@heroicons/react/outline";
 import { Tooltip } from "antd";
 import { Badge } from "@tremor/react";
 import {
@@ -166,28 +166,48 @@ const GuardrailTable: React.FC<GuardrailTableProps> = ({
         return (
           <div className="flex space-x-2">
             {isConfigGuardrail ? (
-              <Tooltip title="Config guardrail cannot be deleted on the dashboard. Please delete it from the config file.">
-                <Icon
-                  data-testid="config-delete-icon"
-                  icon={TrashIcon}
-                  size="sm"
-                  className="cursor-not-allowed text-gray-400"
-                  title="Config guardrail cannot be deleted on the dashboard. Please delete it from the config file."
-                  aria-label="Delete guardrail (config)"
-                />
-              </Tooltip>
+              <>
+                <Tooltip title="Config guardrail cannot be edited on the dashboard. Please edit it from the config file.">
+                  <Icon
+                    icon={PencilIcon}
+                    size="sm"
+                    className="cursor-not-allowed text-gray-400"
+                    aria-label="Edit guardrail (config)"
+                  />
+                </Tooltip>
+                <Tooltip title="Config guardrail cannot be deleted on the dashboard. Please delete it from the config file.">
+                  <Icon
+                    data-testid="config-delete-icon"
+                    icon={TrashIcon}
+                    size="sm"
+                    className="cursor-not-allowed text-gray-400"
+                    title="Config guardrail cannot be deleted on the dashboard. Please delete it from the config file."
+                    aria-label="Delete guardrail (config)"
+                  />
+                </Tooltip>
+              </>
             ) : (
-              <Tooltip title="Delete guardrail">
-                <Icon
-                  icon={TrashIcon}
-                  size="sm"
-                  onClick={() =>
-                    guardrail.guardrail_id &&
-                    onDeleteClick(guardrail.guardrail_id, guardrail.guardrail_name || "Unnamed Guardrail")
-                  }
-                  className="cursor-pointer hover:text-red-500"
-                />
-              </Tooltip>
+              <>
+                <Tooltip title="Edit guardrail">
+                  <Icon
+                    icon={PencilIcon}
+                    size="sm"
+                    onClick={() => handleEditClick(guardrail)}
+                    className="cursor-pointer hover:text-blue-500"
+                  />
+                </Tooltip>
+                <Tooltip title="Delete guardrail">
+                  <Icon
+                    icon={TrashIcon}
+                    size="sm"
+                    onClick={() =>
+                      guardrail.guardrail_id &&
+                      onDeleteClick(guardrail.guardrail_id, guardrail.guardrail_name || "Unnamed Guardrail")
+                    }
+                    className="cursor-pointer hover:text-red-500"
+                  />
+                </Tooltip>
+              </>
             )}
           </div>
         );
@@ -287,7 +307,7 @@ const GuardrailTable: React.FC<GuardrailTableProps> = ({
       {selectedGuardrail && (
         <EditGuardrailForm
           visible={editModalVisible}
-          onClose={() => setEditModalVisible(false)}
+          onClose={() => { setEditModalVisible(false); setSelectedGuardrail(null); }}
           accessToken={accessToken}
           onSuccess={handleEditSuccess}
           guardrailId={selectedGuardrail.guardrail_id || ""}
