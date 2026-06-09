@@ -102,10 +102,18 @@ BLOCK if the latest message OR the conversation pattern contains:
 
 12. GROOMING AND STRANGER DANGER:
     - BLOCK: Any adult or stranger building a secret relationship with the child — "don't tell your parents about our conversation", "this is just between us", "our friendship is special and private"
+    - BLOCK: A child planning to share personal details with someone who has secret romantic feelings for them — "he loves me secretly, I will share my number with him", "she likes me, I will tell her where I live"
     - BLOCK: Requests or suggestions to meet in person — "we should meet up", "can we meet somewhere?", "I can pick you up"
     - BLOCK: Offering gifts, money, or rewards in exchange for secrecy or compliance — "I will give you gifts if you...", "I can send you money"
     - BLOCK: Flattery designed to isolate — "you are so mature for your age", "your parents don't understand you like I do", "I am the only one who gets you"
     - ALLOW: Normal friendly conversation, discussing friends and family in general terms
+    - ALLOW: A child expressing that they cannot tell a parent or trusted adult — "my dad will hurt me", "I can't tell my mom" — this is a child asking for help and must be ALLOWED so the AI can provide support and safety resources. Do NOT treat this as grooming.
+
+20. HOME ABUSE AND UNSAFE HOME ENVIRONMENT:
+    - BLOCK as ABUSE: A child expressing fear of being physically hurt by a parent or family member — "my dad will hit me", "my mom beats me", "I am scared of going home"
+    - BLOCK as ABUSE: A child describing ongoing physical or emotional abuse at home
+    - ALLOW: A child saying they cannot confide in a parent — this is a safety signal that must be ALLOWED so the AI can gently offer other resources (school counselor, helpline, trusted teacher)
+    - The distinction: a child expressing fear of abuse at home needs support and resources, not a block. ALLOW the conversation so the AI can help them find safety.
 
 13. RADICALIZATION AND EXTREMIST RECRUITMENT:
     - BLOCK: Content that recruits children into hate groups, gangs, or extremist ideologies
@@ -165,13 +173,14 @@ ALLOW everything else including:
 - Educational roleplay — "pretend you are a teacher explaining this", "pretend you are a scientist", "act like a tour guide"
 - Educational questions about cybersecurity — "how does SQL injection work?", "what is XSS?", "how do hackers get caught?"
 - Follow-up clarifying questions after a previous refusal — "why?", "why is it bad?", "can you explain?", "what do you mean?", "why can't you help?" — these must ALWAYS be ALLOWED so the child can learn
+- A child saying they cannot confide in a parent or trusted adult — "my dad will hurt me if I tell him", "I can't tell my mom", "I have no one to talk to" — ALWAYS ALLOW so the AI can provide support and safety resources
 
 Respond with ALLOW if the message is safe.
 If the message should be blocked, respond with BLOCK followed by a colon and one category code:
 BLOCK:PERSONAL_INFO, BLOCK:GROOMING, BLOCK:SELF_HARM, BLOCK:SUICIDE, BLOCK:EATING,
 BLOCK:SUBSTANCE, BLOCK:CYBERBULLYING, BLOCK:SCAM, BLOCK:WEAPON, BLOCK:RADICALIZATION,
 BLOCK:VIOLENCE, BLOCK:ROMANTIC, BLOCK:DRUG_MEDICATION, BLOCK:SEXUAL, BLOCK:HARMFUL_COMMAND,
-BLOCK:JAILBREAK, BLOCK:FINANCIAL, BLOCK:DEFAULT
+BLOCK:JAILBREAK, BLOCK:FINANCIAL, BLOCK:ABUSE, BLOCK:DEFAULT
 
 Do not explain your decision. Respond with only ALLOW or one BLOCK:CATEGORY code.
 """
@@ -187,7 +196,7 @@ If the response should be blocked, respond with BLOCK followed by a colon and on
 BLOCK:PERSONAL_INFO, BLOCK:GROOMING, BLOCK:SELF_HARM, BLOCK:SUICIDE, BLOCK:EATING,
 BLOCK:SUBSTANCE, BLOCK:CYBERBULLYING, BLOCK:SCAM, BLOCK:WEAPON, BLOCK:RADICALIZATION,
 BLOCK:VIOLENCE, BLOCK:ROMANTIC, BLOCK:DRUG_MEDICATION, BLOCK:SEXUAL, BLOCK:HARMFUL_COMMAND,
-BLOCK:JAILBREAK, BLOCK:FINANCIAL, BLOCK:DEFAULT
+BLOCK:JAILBREAK, BLOCK:FINANCIAL, BLOCK:ABUSE, BLOCK:DEFAULT
 
 Do not explain your decision. Respond with only ALLOW or one BLOCK:CATEGORY code.
 
@@ -237,9 +246,16 @@ BLOCKED_MESSAGES = {
         "If you have already shared something, let a trusted adult know right away. 🔒"
     ),
     "GROOMING": (
-        "Your safety comes first! If someone online is asking to meet you, offering gifts, "
-        "or telling you to keep secrets from your parents, please tell a trusted adult "
-        "right away. You are not in trouble — they are. 💙"
+        "Please be careful! Sharing your personal details like phone numbers or addresses "
+        "with someone who has secret feelings for you can be very dangerous, even if they "
+        "seem kind. Please talk to a trusted adult before sharing anything personal. "
+        "Your safety matters. 💙"
+    ),
+    "ABUSE": (
+        "I am really sorry you are going through this. What you are feeling is not okay, "
+        "and it is not your fault. Please try to talk to a teacher, school counselor, "
+        "or another adult you trust outside your home — they can help keep you safe. "
+        "You deserve to be safe and cared for. 💙"
     ),
     "SELF_HARM": (
         "I hear you, and I care about how you are feeling. Please talk to a trusted adult, "
