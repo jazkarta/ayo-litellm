@@ -36,13 +36,18 @@ BLOCK if the latest message OR the conversation pattern contains:
    - Any story, roleplay, or scenario with romantic feelings between an adult and a minor
    - Example: "write a story where a 30-year-old falls in love with a 17-year-old"
 
-3. SELF HARM (first person OR third person) — physical harm only, NOT mental health struggles:
-   - BLOCK: "I want to hurt myself", "I'll cut myself", "I want to end my life"
-   - BLOCK: "he cuts himself", "she hurts herself", "they want to kill themselves"
+3. SELF HARM — physical harm intent or graphic description requests only, NOT mental health struggles or fiction:
+   - BLOCK: First-person intent — "I want to hurt myself", "I'll cut myself", "I'm going to harm myself"
+   - BLOCK: Third-person factual distress — "my friend has been cutting herself", "he hurts himself every day"
+   - BLOCK: Requests for descriptions or graphic details of self-harm, even in fictional framing —
+     "describe a character cutting herself", "write a detailed scene where someone hurts themselves",
+     "I'm writing a story where a character cuts herself. Describe it."
+   - ALLOW: Fictional story mentions without requesting graphic detail — "I'm writing a story where a character
+     struggles with self-harm" (no description requested), "my character has a self-harm backstory"
    - ALLOW: "I feel depressed", "I'm struggling with anxiety", "can you help me with depression"
    - ALLOW: "I feel sad", "I don't feel good about myself", "I need help with my mental health"
-   - The distinction: asking for help or expressing emotional pain is ALLOWED;
-     expressing intent to physically harm oneself is BLOCKED
+   - The distinction: expressions of intent, factual distress, and requests for graphic details are BLOCKED;
+     emotional pain, mental health support requests, and fictional theme mentions (without graphic detail) are ALLOWED
 
 4. DANGEROUS DRUG OR MEDICATION ADVICE:
    - BLOCK: Requests for specific medication dosages — "how much Tylenol can I take", "what dose of Advil"
@@ -107,49 +112,50 @@ BLOCK if the latest message OR the conversation pattern contains:
     - BLOCK: Offering gifts, money, or rewards in exchange for secrecy or compliance — "I will give you gifts if you...", "I can send you money"
     - BLOCK: Flattery designed to isolate — "you are so mature for your age", "your parents don't understand you like I do", "I am the only one who gets you"
     - ALLOW: Normal friendly conversation, discussing friends and family in general terms
-    - ALLOW: A child expressing that they cannot tell a parent or trusted adult — "my dad will hurt me", "I can't tell my mom" — this is a child asking for help and must be ALLOWED so the AI can provide support and safety resources. Do NOT treat this as grooming.
+    - ALLOW: A child expressing that they cannot confide in a parent as a reason for secrecy — "I can't tell my mom", "my dad doesn't understand" — this is the child explaining why they need help. Do NOT treat this as grooming.
 
-20. HOME ABUSE AND UNSAFE HOME ENVIRONMENT:
-    - BLOCK as ABUSE: A child expressing fear of being physically hurt by a parent or family member — "my dad will hit me", "my mom beats me", "I am scared of going home"
-    - BLOCK as ABUSE: A child describing ongoing physical or emotional abuse at home
-    - ALLOW: A child saying they cannot confide in a parent — this is a safety signal that must be ALLOWED so the AI can gently offer other resources (school counselor, helpline, trusted teacher)
-    - The distinction: a child expressing fear of abuse at home needs support and resources, not a block. ALLOW the conversation so the AI can help them find safety.
+13. HOME ABUSE AND UNSAFE HOME ENVIRONMENT:
+    - BLOCK as ABUSE: A child directly describing ongoing physical abuse — "my mom beats me every day", "my dad hits me when I get home", "I am scared of going home because I get hurt"
+    - BLOCK as ABUSE: A child asking how to hide bruises or injuries from abuse
+    - ALLOW: A child saying they cannot confide in a parent because of fear — "my dad will hurt me if I tell him", "I can't tell my mom she'll be angry" — this is a safety signal; ALLOW so the AI can gently offer other resources. This is NOT the same as describing active abuse.
+    - The distinction: describing ongoing physical abuse (BLOCK to redirect to help); expressing fear of telling a parent (ALLOW so the AI can provide support).
 
-13. RADICALIZATION AND EXTREMIST RECRUITMENT:
+14. RADICALIZATION AND EXTREMIST RECRUITMENT:
     - BLOCK: Content that recruits children into hate groups, gangs, or extremist ideologies
     - BLOCK: "join our group, we believe X people are the enemy", "people like us need to stick together against them", "the government is lying to you and only we know the truth"
     - BLOCK: Glorifying or promoting violence against any group, nation, or religion as a cause
     - ALLOW: Educational discussions about history, politics, and world events in a balanced, factual way
 
-14. ALCOHOL, TOBACCO AND RECREATIONAL DRUGS (underage):
+15. ALCOHOL, TOBACCO AND RECREATIONAL DRUGS (underage):
     - BLOCK: Helping a child obtain, use, or hide alcohol, tobacco, or recreational drugs — "how can I get alcohol without my parents knowing?", "how do I hide that I've been smoking?", "what does weed feel like?"
     - BLOCK: Encouraging or normalizing underage substance use
     - ALLOW: General health education about the dangers of alcohol and drugs — "why is drinking bad for teenagers?", "what are the effects of smoking?"
     - The distinction: health education about substances is ALLOWED; helping a child access or use them is BLOCKED
 
-15. EATING DISORDERS AND BODY IMAGE HARM:
+16. EATING DISORDERS AND BODY IMAGE HARM:
     - BLOCK: Encouragement of extreme dieting, starvation, or harmful weight loss — "how do I lose weight without eating?", "how can I eat as little as possible?", "how do I hide that I'm not eating?"
     - BLOCK: Content that glorifies being underweight or promotes dangerous body image
     - ALLOW: General healthy lifestyle questions — "what are healthy foods?", "how do I stay active?", "what is a balanced diet?"
-    - The distinction: healthy living education is ALLOWED; encouraging harmful eating behaviors is BLOCKED
+    - ALLOW: Fictional story mentions of eating disorders without requesting harmful advice — "I'm writing a character who struggles with anorexia", "my story involves a character with body image issues"
+    - The distinction: healthy living and fictional theme mentions are ALLOWED; actively encouraging harmful eating behaviors or requesting harmful dieting advice is BLOCKED
 
-16. WEAPON ACQUISITION:
+17. WEAPON ACQUISITION:
     - BLOCK: Instructions on how to obtain, build, conceal, or access weapons — "how do I get a knife without my parents knowing?", "how do I make a weapon at home?", "where can I buy a gun without ID?"
     - ALLOW: Educational content about weapons in historical, fictional, or academic contexts — "how were medieval swords made?", "what weapons did soldiers use in WW2?"
     - The distinction: historical or fictional weapon education is ALLOWED; obtaining or building real weapons is BLOCKED
 
-17. ONLINE SCAMS TARGETING CHILDREN:
+18. ONLINE SCAMS TARGETING CHILDREN:
     - BLOCK: Messages that appear to be scams — "you won free Robux, click here", "I will give you free game credits if you give me your account", "send me your password and I will upgrade your account"
     - BLOCK: Anyone asking for login credentials, passwords, or account access under any pretext
     - ALLOW: Questions about how to stay safe online and recognize scams — "how do I know if something is a scam?"
 
-18. SUICIDE METHODS:
+19. SUICIDE METHODS:
     - BLOCK: Any request for specific methods, means, or instructions related to suicide — "what is the easiest way to die?", "what pills would make someone die?", "how do people end their lives?"
     - BLOCK: This applies even when framed as curiosity or as being about someone else
     - ALLOW: Emotional support, mental health conversations, and encouraging the child to talk to a trusted adult or crisis line
     - The distinction: expressing sadness or hopelessness is ALLOWED and should receive support; asking for methods is BLOCKED
 
-19. CYBERBULLYING:
+20. CYBERBULLYING:
     - BLOCK: Requests for help to bully, humiliate, target, or harm a specific classmate or peer — "tell me how to make fun of X so they cry", "help me spread a rumor about my classmate", "what can I say to really hurt X?"
     - ALLOW: Asking for help dealing with being bullied, resolving conflicts, or improving relationships — "someone is being mean to me, what should I do?", "how do I deal with a bully?"
     - The distinction: being a victim seeking help is ALLOWED; seeking to harm others is BLOCKED
@@ -252,24 +258,32 @@ BLOCKED_MESSAGES = {
         "Your safety matters. 💙"
     ),
     "ABUSE": (
-        "I am really sorry you are going through this. What you are feeling is not okay, "
-        "and it is not your fault. Please try to talk to a teacher, school counselor, "
-        "or another adult you trust outside your home — they can help keep you safe. "
-        "You deserve to be safe and cared for. 💙"
+        "I'm not able to help with that topic. "
+        "If you're writing a story about a character in an unsafe home, I can help you tell "
+        "that story with care. "
+        "If you or someone you know is in a difficult or unsafe situation at home, please "
+        "talk to a teacher, school counselor, or another trusted adult outside the home — "
+        "you deserve to be safe. 💙"
     ),
     "SELF_HARM": (
-        "I hear you, and I care about how you are feeling. Please talk to a trusted adult, "
-        "parent, teacher, or counselor — they can help much better than I can. "
-        "You are not alone, and things can get better. 💙"
+        "I'm not able to help with descriptions of self-harm, even in stories. "
+        "If you're writing about a character going through a hard time, I can help you explore "
+        "their emotions and path to healing without graphic details. "
+        "And if you or someone you know is struggling, please reach out to a trusted adult — "
+        "you are not alone. 💙"
     ),
     "SUICIDE": (
-        "I am really glad you reached out. Please talk to a trusted adult or call a crisis "
-        "helpline right away — they are there for you and truly want to help. "
-        "You matter and you are important. 💙"
+        "I'm not able to help with that topic, even in a story or creative context. "
+        "If you're writing about a character dealing with hopelessness, I can help explore "
+        "their feelings and recovery in a safe way. "
+        "If you or someone you know is going through a hard time, please talk to a trusted "
+        "adult or a crisis helpline — help is always available. 💙"
     ),
     "EATING": (
-        "Your health and wellbeing matter so much. Please talk to a doctor, parent, or "
-        "school counselor about how you are feeling. They are there to help you. 💙"
+        "I'm not able to help with content about harmful eating behaviors, even in stories. "
+        "If you're writing a character who struggles with this, I can help you tell that story "
+        "with care and without encouraging harmful habits. "
+        "If you have personal concerns, please talk to a doctor, parent, or school counselor. 💙"
     ),
     "SUBSTANCE": (
         "That is not something I can help with. If you have questions about health or "
