@@ -349,3 +349,10 @@ exceptions:
   - "support lgbtq"
   - "lgbtq youth"
   - "lgbtq healthcare"
+  # Educational / research context for "conversion therapy" always_block
+  - "what is conversion therapy"
+  - "conversion therapy harm"
+  - "conversion therapy research"
+  - "oppose conversion therapy"
+  - "against conversion therapy"
+  - "conversion therapy awareness"

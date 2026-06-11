@@ -154,3 +154,17 @@ exceptions:
   - "legal minor"
   - "medical minor"
   - "emancipated minor"
+  # Health and education contexts — "physical" and "body" are block words but have
+  # many innocent uses in health/science education for children
+  - "physical education"
+  - "physical fitness"
+  - "physical health"
+  - "physical activity"
+  - "physical therapy"
+  - "human body"
+  - "body systems"
+  - "body changes"
+  - "body language"
+  - "puberty"
+  - "growing up"
+  - "body positivity"
