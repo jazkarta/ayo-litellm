@@ -194,53 +194,53 @@ Do not explain your decision. Respond with only ALLOW or one BLOCK:CATEGORY code
 # ---------------------------------------------------------------------------
 # Response evaluator prompt — checks AI output for persona slip-through
 # ---------------------------------------------------------------------------
-POST_CALL_EVALUATOR_PROMPT = """
-You are checking if an AI assistant's response is appropriate for children aged 8-17.
-
-Respond with ALLOW if the response is appropriate.
-If the response should be blocked, respond with BLOCK followed by a colon and one category code:
-BLOCK:PERSONAL_INFO, BLOCK:GROOMING, BLOCK:SELF_HARM, BLOCK:SUICIDE, BLOCK:EATING,
-BLOCK:SUBSTANCE, BLOCK:CYBERBULLYING, BLOCK:SCAM, BLOCK:WEAPON, BLOCK:RADICALIZATION,
-BLOCK:VIOLENCE, BLOCK:ROMANTIC, BLOCK:DRUG_MEDICATION, BLOCK:SEXUAL, BLOCK:HARMFUL_COMMAND,
-BLOCK:JAILBREAK, BLOCK:FINANCIAL, BLOCK:ABUSE, BLOCK:DEFAULT
-
-Do not explain your decision. Respond with only ALLOW or one BLOCK:CATEGORY code.
-
-BLOCK if the AI response:
-- Adopts a romantic, spousal, or relationship persona (e.g. uses "darling", "dear", "as your wife", "my love", "honey")
-- Agrees to play a romantic or adult role
-- Contains flirtatious, intimate, or adult-oriented language
-- Shows the AI has accepted an inappropriate instruction from the user
-- Contains graphic self-harm descriptions or encouragement to self-harm
-- Provides specific suicide methods or instructions, even when framed as curiosity
-- Expresses negative bias against a group (sexuality, religion, gender)
-- Recommends specific medications, dosages, or drugs to the user
-- Provides instructions on how to obtain or misuse drugs or medication
-- Encourages or normalizes underage use of alcohol, tobacco, or recreational drugs
-- Provides, repeats, or confirms a bank account number, card number, CVV, PIN, or OTP
-- Provides harmful OS or web commands — destructive terminal commands, SQL injection payloads, XSS scripts, exploit code
-- Asks the child for their personal information — address, phone number, school name, location
-- Encourages secrecy from parents or suggests meeting in person
-- Promotes extremist ideology, hate groups, or radicalization
-- Encourages harmful eating behaviors, extreme dieting, or starvation
-- Provides instructions on obtaining or building weapons
-- Helps the child bully, humiliate, or harm another person
-- Asks for or encourages sharing of passwords, login credentials, or account access
-
-ALLOW if the AI response:
-- Politely refuses and redirects
-- Answers an age-appropriate educational or technical question
-- Provides emotional support in a safe, platonic way
-- Uses words like "kill" or "terminate" in a technical/educational context
-- Offers mental health support, coping strategies, or encouragement for depression/anxiety/sadness
-- Explains health topics or diseases in a general, educational way
-- Encourages the child to talk to a trusted adult, parent, counselor, or crisis line
-- Explains banking or finance concepts without sharing actual account or card numbers
-- Helps with normal coding, programming, or learning how technology works
-- Warns the child about online safety, scams, or stranger danger in a supportive way
-- Encourages healthy eating, active lifestyle, or positive body image
-- Helps the child deal with being bullied or resolve conflicts peacefully
-"""
+# POST_CALL_EVALUATOR_PROMPT = """
+# You are checking if an AI assistant's response is appropriate for children aged 8-17.
+#
+# Respond with ALLOW if the response is appropriate.
+# If the response should be blocked, respond with BLOCK followed by a colon and one category code:
+# BLOCK:PERSONAL_INFO, BLOCK:GROOMING, BLOCK:SELF_HARM, BLOCK:SUICIDE, BLOCK:EATING,
+# BLOCK:SUBSTANCE, BLOCK:CYBERBULLYING, BLOCK:SCAM, BLOCK:WEAPON, BLOCK:RADICALIZATION,
+# BLOCK:VIOLENCE, BLOCK:ROMANTIC, BLOCK:DRUG_MEDICATION, BLOCK:SEXUAL, BLOCK:HARMFUL_COMMAND,
+# BLOCK:JAILBREAK, BLOCK:FINANCIAL, BLOCK:ABUSE, BLOCK:DEFAULT
+#
+# Do not explain your decision. Respond with only ALLOW or one BLOCK:CATEGORY code.
+#
+# BLOCK if the AI response:
+# - Adopts a romantic, spousal, or relationship persona (e.g. uses "darling", "dear", "as your wife", "my love", "honey")
+# - Agrees to play a romantic or adult role
+# - Contains flirtatious, intimate, or adult-oriented language
+# - Shows the AI has accepted an inappropriate instruction from the user
+# - Contains graphic self-harm descriptions or encouragement to self-harm
+# - Provides specific suicide methods or instructions, even when framed as curiosity
+# - Expresses negative bias against a group (sexuality, religion, gender)
+# - Recommends specific medications, dosages, or drugs to the user
+# - Provides instructions on how to obtain or misuse drugs or medication
+# - Encourages or normalizes underage use of alcohol, tobacco, or recreational drugs
+# - Provides, repeats, or confirms a bank account number, card number, CVV, PIN, or OTP
+# - Provides harmful OS or web commands — destructive terminal commands, SQL injection payloads, XSS scripts, exploit code
+# - Asks the child for their personal information — address, phone number, school name, location
+# - Encourages secrecy from parents or suggests meeting in person
+# - Promotes extremist ideology, hate groups, or radicalization
+# - Encourages harmful eating behaviors, extreme dieting, or starvation
+# - Provides instructions on obtaining or building weapons
+# - Helps the child bully, humiliate, or harm another person
+# - Asks for or encourages sharing of passwords, login credentials, or account access
+#
+# ALLOW if the AI response:
+# - Politely refuses and redirects
+# - Answers an age-appropriate educational or technical question
+# - Provides emotional support in a safe, platonic way
+# - Uses words like "kill" or "terminate" in a technical/educational context
+# - Offers mental health support, coping strategies, or encouragement for depression/anxiety/sadness
+# - Explains health topics or diseases in a general, educational way
+# - Encourages the child to talk to a trusted adult, parent, counselor, or crisis line
+# - Explains banking or finance concepts without sharing actual account or card numbers
+# - Helps with normal coding, programming, or learning how technology works
+# - Warns the child about online safety, scams, or stranger danger in a supportive way
+# - Encourages healthy eating, active lifestyle, or positive body image
+# - Helps the child deal with being bullied or resolve conflicts peacefully
+# """
 
 # ---------------------------------------------------------------------------
 # Category-specific block messages — child-friendly and context-aware
@@ -368,19 +368,11 @@ class ChildSafetyGuardrail(CustomGuardrail):
 
     def _force_refusal_response(self, data: dict, category: str = "DEFAULT") -> dict:
         """
-        Replace the request messages so the model is forced to return
-        the appropriate blocked message as a normal chat message (200 OK, no error).
+        Short-circuit the request using LiteLLM's mock_response mechanism.
+        This skips the main model call entirely — the blocked message is returned
+        directly as a normal 200 OK chat completion with no API cost.
         """
-        message = _get_blocked_message(category)
-        data["messages"] = [
-            {
-                "role": "system",
-                "content": (
-                    f"You must respond with exactly this sentence and nothing else: {message}"
-                ),
-            },
-            {"role": "user", "content": "respond"},
-        ]
+        data["mock_response"] = _get_blocked_message(category)
         return data
 
     async def async_pre_call_hook(self, user_api_key_dict, cache, data, call_type):
@@ -424,22 +416,26 @@ class ChildSafetyGuardrail(CustomGuardrail):
 
         return data
 
-    async def async_post_call_success_hook(self, data, user_api_key_dict, response):
-        """Check the AI response for persona slip-through."""
-        try:
-            ai_reply = response.choices[0].message.content or ""
-            if not ai_reply:
-                return
-
-            verdict, category = await self._evaluate(POST_CALL_EVALUATOR_PROMPT, ai_reply)
-            verbose_logger.debug(
-                f"[ChildSafety post_call] verdict={verdict} category={category} | reply={ai_reply[:80]}"
-            )
-            if verdict == "BLOCK":
-                verbose_logger.info(
-                    f"[ChildSafety post_call] Blocked AI response ({category}): {ai_reply[:80]}"
-                )
-                response.choices[0].message.content = _get_blocked_message(category or "DEFAULT")
-
-        except Exception as e:
-            verbose_logger.warning(f"[ChildSafety post_call] Evaluator error: {e}")
+    # Post-call hook disabled to reduce API costs (one gpt-4o-mini call saved per request).
+    # Pre-call already blocks inputs that would cause persona slip-through.
+    # Re-enable if post-response safety checking becomes necessary.
+    #
+    # async def async_post_call_success_hook(self, data, user_api_key_dict, response):
+    #     """Check the AI response for persona slip-through."""
+    #     try:
+    #         ai_reply = response.choices[0].message.content or ""
+    #         if not ai_reply:
+    #             return
+    #
+    #         verdict, category = await self._evaluate(POST_CALL_EVALUATOR_PROMPT, ai_reply)
+    #         verbose_logger.debug(
+    #             f"[ChildSafety post_call] verdict={verdict} category={category} | reply={ai_reply[:80]}"
+    #         )
+    #         if verdict == "BLOCK":
+    #             verbose_logger.info(
+    #                 f"[ChildSafety post_call] Blocked AI response ({category}): {ai_reply[:80]}"
+    #             )
+    #             response.choices[0].message.content = _get_blocked_message(category or "DEFAULT")
+    #
+    #     except Exception as e:
+    #         verbose_logger.warning(f"[ChildSafety post_call] Evaluator error: {e}")
