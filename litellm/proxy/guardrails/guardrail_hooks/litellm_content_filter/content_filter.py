@@ -1835,7 +1835,14 @@ class ContentFilterGuardrail(CustomGuardrail):
             return inputs
         except HTTPException:
             status = "guardrail_intervened"
-            raise
+            # Return a friendly violation message (200) instead of a hard 403 error.
+            # Honors violation_message_template when configured, else a safe default.
+            message = self.render_violation_message(
+                default="I'm not able to help with that. Let's talk about something else!"
+            )
+            self.raise_passthrough_exception(
+                violation_message=message, request_data=request_data
+            )
         except Exception as e:
             status = "guardrail_failed_to_respond"
             exception_str = str(e)

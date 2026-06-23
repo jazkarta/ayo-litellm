@@ -194,53 +194,53 @@ Do not explain your decision. Respond with only ALLOW or one BLOCK:CATEGORY code
 # ---------------------------------------------------------------------------
 # Response evaluator prompt — checks AI output for persona slip-through
 # ---------------------------------------------------------------------------
-# POST_CALL_EVALUATOR_PROMPT = """
-# You are checking if an AI assistant's response is appropriate for children aged 8-17.
-#
-# Respond with ALLOW if the response is appropriate.
-# If the response should be blocked, respond with BLOCK followed by a colon and one category code:
-# BLOCK:PERSONAL_INFO, BLOCK:GROOMING, BLOCK:SELF_HARM, BLOCK:SUICIDE, BLOCK:EATING,
-# BLOCK:SUBSTANCE, BLOCK:CYBERBULLYING, BLOCK:SCAM, BLOCK:WEAPON, BLOCK:RADICALIZATION,
-# BLOCK:VIOLENCE, BLOCK:ROMANTIC, BLOCK:DRUG_MEDICATION, BLOCK:SEXUAL, BLOCK:HARMFUL_COMMAND,
-# BLOCK:JAILBREAK, BLOCK:FINANCIAL, BLOCK:ABUSE, BLOCK:DEFAULT
-#
-# Do not explain your decision. Respond with only ALLOW or one BLOCK:CATEGORY code.
-#
-# BLOCK if the AI response:
-# - Adopts a romantic, spousal, or relationship persona (e.g. uses "darling", "dear", "as your wife", "my love", "honey")
-# - Agrees to play a romantic or adult role
-# - Contains flirtatious, intimate, or adult-oriented language
-# - Shows the AI has accepted an inappropriate instruction from the user
-# - Contains graphic self-harm descriptions or encouragement to self-harm
-# - Provides specific suicide methods or instructions, even when framed as curiosity
-# - Expresses negative bias against a group (sexuality, religion, gender)
-# - Recommends specific medications, dosages, or drugs to the user
-# - Provides instructions on how to obtain or misuse drugs or medication
-# - Encourages or normalizes underage use of alcohol, tobacco, or recreational drugs
-# - Provides, repeats, or confirms a bank account number, card number, CVV, PIN, or OTP
-# - Provides harmful OS or web commands — destructive terminal commands, SQL injection payloads, XSS scripts, exploit code
-# - Asks the child for their personal information — address, phone number, school name, location
-# - Encourages secrecy from parents or suggests meeting in person
-# - Promotes extremist ideology, hate groups, or radicalization
-# - Encourages harmful eating behaviors, extreme dieting, or starvation
-# - Provides instructions on obtaining or building weapons
-# - Helps the child bully, humiliate, or harm another person
-# - Asks for or encourages sharing of passwords, login credentials, or account access
-#
-# ALLOW if the AI response:
-# - Politely refuses and redirects
-# - Answers an age-appropriate educational or technical question
-# - Provides emotional support in a safe, platonic way
-# - Uses words like "kill" or "terminate" in a technical/educational context
-# - Offers mental health support, coping strategies, or encouragement for depression/anxiety/sadness
-# - Explains health topics or diseases in a general, educational way
-# - Encourages the child to talk to a trusted adult, parent, counselor, or crisis line
-# - Explains banking or finance concepts without sharing actual account or card numbers
-# - Helps with normal coding, programming, or learning how technology works
-# - Warns the child about online safety, scams, or stranger danger in a supportive way
-# - Encourages healthy eating, active lifestyle, or positive body image
-# - Helps the child deal with being bullied or resolve conflicts peacefully
-# """
+POST_CALL_EVALUATOR_PROMPT = """
+You are checking if an AI assistant's response is appropriate for children aged 8-17.
+
+Respond with ALLOW if the response is appropriate.
+If the response should be blocked, respond with BLOCK followed by a colon and one category code:
+BLOCK:PERSONAL_INFO, BLOCK:GROOMING, BLOCK:SELF_HARM, BLOCK:SUICIDE, BLOCK:EATING,
+BLOCK:SUBSTANCE, BLOCK:CYBERBULLYING, BLOCK:SCAM, BLOCK:WEAPON, BLOCK:RADICALIZATION,
+BLOCK:VIOLENCE, BLOCK:ROMANTIC, BLOCK:DRUG_MEDICATION, BLOCK:SEXUAL, BLOCK:HARMFUL_COMMAND,
+BLOCK:JAILBREAK, BLOCK:FINANCIAL, BLOCK:ABUSE, BLOCK:DEFAULT
+
+Do not explain your decision. Respond with only ALLOW or one BLOCK:CATEGORY code.
+
+BLOCK if the AI response:
+- Adopts a romantic, spousal, or relationship persona (e.g. uses "darling", "dear", "as your wife", "my love", "honey")
+- Agrees to play a romantic or adult role
+- Contains flirtatious, intimate, or adult-oriented language
+- Shows the AI has accepted an inappropriate instruction from the user
+- Contains graphic self-harm descriptions or encouragement to self-harm
+- Provides specific suicide methods or instructions, even when framed as curiosity
+- Expresses negative bias against a group (sexuality, religion, gender)
+- Recommends specific medications, dosages, or drugs to the user
+- Provides instructions on how to obtain or misuse drugs or medication
+- Encourages or normalizes underage use of alcohol, tobacco, or recreational drugs
+- Provides, repeats, or confirms a bank account number, card number, CVV, PIN, or OTP
+- Provides harmful OS or web commands — destructive terminal commands, SQL injection payloads, XSS scripts, exploit code
+- Asks the child for their personal information — address, phone number, school name, location
+- Encourages secrecy from parents or suggests meeting in person
+- Promotes extremist ideology, hate groups, or radicalization
+- Encourages harmful eating behaviors, extreme dieting, or starvation
+- Provides instructions on obtaining or building weapons
+- Helps the child bully, humiliate, or harm another person
+- Asks for or encourages sharing of passwords, login credentials, or account access
+
+ALLOW if the AI response:
+- Politely refuses and redirects
+- Answers an age-appropriate educational or technical question
+- Provides emotional support in a safe, platonic way
+- Uses words like "kill" or "terminate" in a technical/educational context
+- Offers mental health support, coping strategies, or encouragement for depression/anxiety/sadness
+- Explains health topics or diseases in a general, educational way
+- Encourages the child to talk to a trusted adult, parent, counselor, or crisis line
+- Explains banking or finance concepts without sharing actual account or card numbers
+- Helps with normal coding, programming, or learning how technology works
+- Warns the child about online safety, scams, or stranger danger in a supportive way
+- Encourages healthy eating, active lifestyle, or positive body image
+- Helps the child deal with being bullied or resolve conflicts peacefully
+"""
 
 # ---------------------------------------------------------------------------
 # Category-specific block messages — child-friendly and context-aware
@@ -328,6 +328,87 @@ def _get_blocked_message(category: str) -> str:
     return BLOCKED_MESSAGES.get(category, BLOCKED_MESSAGES["DEFAULT"])
 
 
+def _flatten_content(content) -> str:
+    """Flatten a message content field (str, or list of text blocks) to plain text."""
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        parts = []
+        for block in content:
+            if isinstance(block, str):
+                parts.append(block)
+            elif isinstance(block, dict) and block.get("text"):
+                parts.append(block["text"])
+        return " ".join(parts)
+    return ""
+
+
+def _extract_request_text(data: dict) -> tuple:
+    """
+    Return (latest_user_text, history) from a request body.
+    Supports both the Chat Completions shape (`messages`) and the Responses API
+    shape (`input`, a string or a list of input items).
+    """
+    turns = []
+    messages = data.get("messages")
+    if messages:
+        for m in messages:
+            if isinstance(m, dict) and m.get("role") in ("user", "assistant"):
+                turns.append((m["role"], _flatten_content(m.get("content"))))
+    else:
+        input_data = data.get("input")
+        if isinstance(input_data, str):
+            turns.append(("user", input_data))
+        elif isinstance(input_data, list):
+            for item in input_data:
+                if isinstance(item, str):
+                    turns.append(("user", item))
+                elif isinstance(item, dict) and item.get("role", "user") in ("user", "assistant"):
+                    turns.append((item.get("role", "user"), _flatten_content(item.get("content"))))
+
+    user_text = next((t for r, t in reversed(turns) if r == "user"), "")
+    history = "\n".join(f"{r.upper()}: {t}" for r, t in turns[-6:])
+    return user_text, history
+
+
+def _response_text(response) -> str:
+    """Read the assistant text from a Chat Completions or Responses API response."""
+    if hasattr(response, "choices"):
+        try:
+            return response.choices[0].message.content or ""
+        except (AttributeError, IndexError):
+            return ""
+    return getattr(response, "output_text", "") or ""
+
+
+def _set_response_text(response, message: str) -> None:
+    """Overwrite the assistant text in place for either response shape."""
+    if hasattr(response, "choices"):
+        try:
+            response.choices[0].message.content = message
+        except (AttributeError, IndexError):
+            pass
+        return
+
+    text_blocks = []
+    for item in getattr(response, "output", None) or []:
+        item_type = item.get("type") if isinstance(item, dict) else getattr(item, "type", None)
+        if item_type != "message":
+            continue
+        content = item.get("content") if isinstance(item, dict) else getattr(item, "content", None)
+        for block in content or []:
+            block_type = block.get("type") if isinstance(block, dict) else getattr(block, "type", None)
+            if block_type == "output_text":
+                text_blocks.append(block)
+
+    for i, block in enumerate(text_blocks):
+        value = message if i == 0 else ""
+        if isinstance(block, dict):
+            block["text"] = value
+        else:
+            block.text = value
+
+
 class ChildSafetyGuardrail(CustomGuardrail):
     """
     Semantic child safety guardrail that evaluates:
@@ -377,22 +458,9 @@ class ChildSafetyGuardrail(CustomGuardrail):
 
     async def async_pre_call_hook(self, user_api_key_dict, cache, data, call_type):
         """Evaluate user message + conversation history before sending to model."""
-        messages = data.get("messages", [])
-
-        user_message = next(
-            (m["content"] for m in reversed(messages) if m.get("role") == "user"),
-            None,
-        )
+        user_message, history = _extract_request_text(data)
         if not user_message:
             return data
-
-        # Include last 6 turns so the evaluator sees manipulation patterns
-        recent = messages[-6:] if len(messages) > 6 else messages
-        history = "\n".join(
-            f"{m['role'].upper()}: {m['content']}"
-            for m in recent
-            if m.get("role") in ("user", "assistant")
-        )
 
         evaluation_input = (
             f"CONVERSATION HISTORY:\n{history}\n\n"
@@ -404,21 +472,29 @@ class ChildSafetyGuardrail(CustomGuardrail):
             verbose_logger.debug(
                 f"[ChildSafety pre_call] verdict={verdict} category={category} | message={user_message[:80]}"
             )
-            if verdict == "BLOCK":
-                verbose_logger.info(
-                    f"[ChildSafety pre_call] Blocked ({category}): {user_message[:80]}"
-                )
-                return self._force_refusal_response(data, category or "DEFAULT")
-
         except Exception as e:
             # Fail open — don't break the service if evaluator errors
             verbose_logger.warning(f"[ChildSafety pre_call] Evaluator error: {e}")
+            return data
 
-        return data
+        if verdict != "BLOCK":
+            return data
 
-    # Post-call hook disabled to reduce API costs (one gpt-4o-mini call saved per request).
-    # Pre-call already blocks inputs that would cause persona slip-through.
-    # Re-enable if post-response safety checking becomes necessary.
+        verbose_logger.info(f"[ChildSafety pre_call] Blocked ({category}): {user_message[:80]}")
+
+        # The Responses API can't be short-circuited with mock_response (mock + stream breaks
+        # the responses stream), so raise the passthrough exception the endpoint converts to a
+        # violation message. Chat Completions uses mock_response. Raised outside the try above
+        # so it propagates instead of being caught as an evaluator error.
+        if "response" in str(call_type).lower():
+            self.raise_passthrough_exception(
+                violation_message=_get_blocked_message(category or "DEFAULT"),
+                request_data=data,
+            )
+        return self._force_refusal_response(data, category or "DEFAULT")
+
+    # Original non-streaming-only implementation — kept for reference, superseded by the
+    # _check_ai_reply helper below which is shared by the streaming and non-streaming hooks.
     #
     # async def async_post_call_success_hook(self, data, user_api_key_dict, response):
     #     """Check the AI response for persona slip-through."""
@@ -439,3 +515,100 @@ class ChildSafetyGuardrail(CustomGuardrail):
     #
     #     except Exception as e:
     #         verbose_logger.warning(f"[ChildSafety post_call] Evaluator error: {e}")
+
+    async def _check_ai_reply(self, ai_reply: str):
+        """
+        Run the post-call evaluator on an AI reply.
+        Returns a category-specific block message string if the reply should be blocked,
+        or None to allow it. Also returns None on evaluator error (fail open).
+        """
+        if not ai_reply:
+            return None
+        # Skip our own canned block messages (from a pre_call mock_response or a prior
+        # post_call block) — re-judging them just wastes an evaluator call.
+        if ai_reply in BLOCKED_MESSAGES.values():
+            return None
+        try:
+            verdict, category = await self._evaluate(POST_CALL_EVALUATOR_PROMPT, ai_reply)
+            verbose_logger.debug(
+                f"[ChildSafety post_call] verdict={verdict} category={category} | reply={ai_reply[:80]}"
+            )
+            if verdict == "BLOCK":
+                verbose_logger.info(
+                    f"[ChildSafety post_call] Blocked AI response ({category}): {ai_reply[:80]}"
+                )
+                return _get_blocked_message(category or "DEFAULT")
+        except Exception as e:
+            verbose_logger.warning(f"[ChildSafety post_call] Evaluator error: {e}")
+        return None
+
+    async def async_post_call_success_hook(self, data, user_api_key_dict, response):
+        """Check the AI response for persona slip-through (non-streaming responses)."""
+        blocked_message = await self._check_ai_reply(_response_text(response))
+        if blocked_message is not None:
+            _set_response_text(response, blocked_message)
+
+    async def async_post_call_streaming_iterator_hook(
+        self, user_api_key_dict, response, request_data
+    ):
+        """
+        Streaming counterpart of async_post_call_success_hook.
+
+        The proxy only routes non-streaming responses to async_post_call_success_hook;
+        streamed responses (LibreChat's default) come here instead. We buffer the whole
+        stream, assemble it into a single response, run the same evaluator via
+        _check_ai_reply, and either replay the original chunks or emit one replacement
+        chunk carrying the block message.
+        """
+        # Imported here to avoid a circular import at module load time.
+        from litellm.main import stream_chunk_builder
+        from litellm.llms.base_llm.base_model_iterator import (
+            convert_model_response_to_streaming,
+        )
+        from litellm.types.utils import ModelResponse, ModelResponseStream
+
+        # A pre_call mock_response on a streaming Responses request arrives here as a
+        # single (non-iterable) response object — pass it through unchanged.
+        if not hasattr(response, "__aiter__"):
+            yield response
+            return
+
+        # Errors raised while consuming the upstream stream must propagate so the proxy
+        # emits an error event; swallowing them yields a silent empty stream.
+        iterator = response.__aiter__()
+        try:
+            first = await iterator.__anext__()
+        except StopAsyncIteration:
+            return
+
+        # Only Chat Completions streams are assembled and evaluated here. Other stream
+        # shapes (e.g. Responses API events) are passed through untouched — buffering or
+        # rewriting them would corrupt the stream.
+        if not isinstance(first, ModelResponseStream):
+            yield first
+            async for chunk in iterator:
+                yield chunk
+            return
+
+        chunks = [first]
+        async for chunk in iterator:
+            if isinstance(chunk, ModelResponseStream):
+                chunks.append(chunk)
+
+        try:
+            assembled = stream_chunk_builder(
+                chunks=chunks, messages=request_data.get("messages")
+            )
+            if isinstance(assembled, ModelResponse):
+                blocked_message = await self._check_ai_reply(
+                    assembled.choices[0].message.content or ""
+                )
+                if blocked_message is not None:
+                    assembled.choices[0].message.content = blocked_message
+                    yield convert_model_response_to_streaming(assembled)
+                    return
+        except Exception as e:
+            verbose_logger.warning(f"[ChildSafety post_call stream] Evaluator error: {e}")
+
+        for chunk in chunks:
+            yield chunk

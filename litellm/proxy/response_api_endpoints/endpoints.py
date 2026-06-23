@@ -245,6 +245,39 @@ async def responses_api(
                 input_tokens=0, output_tokens=0, total_tokens=0
             ),
         )
+
+        # A streaming request expects SSE; returning a bare JSON object breaks clients
+        # that parse the response as an event stream. Emit the violation as Responses API
+        # stream events (one text delta + completed) when stream was requested.
+        if _data.get("stream"):
+            from fastapi.responses import StreamingResponse
+
+            from litellm.types.llms.openai import (
+                OutputTextDeltaEvent,
+                ResponseCompletedEvent,
+                ResponsesAPIStreamEvents,
+            )
+
+            async def _violation_event_stream():
+                delta_event = OutputTextDeltaEvent(
+                    type=ResponsesAPIStreamEvents.OUTPUT_TEXT_DELTA,
+                    delta=violation_text,
+                    item_id=response_obj.id,
+                    output_index=0,
+                    content_index=0,
+                )
+                completed_event = ResponseCompletedEvent(
+                    type=ResponsesAPIStreamEvents.RESPONSE_COMPLETED,
+                    response=response_obj,
+                )
+                yield f"data: {delta_event.model_dump_json()}\n\n"
+                yield f"data: {completed_event.model_dump_json()}\n\n"
+                yield "data: [DONE]\n\n"
+
+            return StreamingResponse(
+                _violation_event_stream(), media_type="text/event-stream"
+            )
+
         return response_obj
     except Exception as e:
         raise await processor._handle_llm_api_exception(
