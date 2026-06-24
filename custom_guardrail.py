@@ -15,6 +15,7 @@ import litellm
 from litellm.integrations.custom_guardrail import CustomGuardrail
 from litellm._logging import verbose_logger
 from litellm.types.guardrails import GuardrailEventHooks
+from ayo_guardrails import record_guardrail_trigger
 
 # ---------------------------------------------------------------------------
 # Evaluator prompt — checks user messages WITH conversation history
@@ -329,11 +330,6 @@ def _get_blocked_message(category: str) -> str:
     return BLOCKED_MESSAGES.get(category, BLOCKED_MESSAGES["DEFAULT"])
 
 
-def _print_guardrail_trigger(name: str, stage: str, detail) -> None:
-    """Print a console line whenever a guardrail blocks a request."""
-    print(f"[GUARDRAIL TRIGGERED] name={name} stage={stage} detail={detail}", flush=True)
-
-
 def _flatten_content(content) -> str:
     """Flatten a message content field (str, or list of text blocks) to plain text."""
     if isinstance(content, str):
@@ -487,7 +483,7 @@ class ChildSafetyGuardrail(CustomGuardrail):
             return data
 
         verbose_logger.info(f"[ChildSafety pre_call] Blocked ({category}): {user_message[:80]}")
-        _print_guardrail_trigger(self.guardrail_name, "pre_call", f"BLOCK:{category or 'DEFAULT'}")
+        await record_guardrail_trigger(data, self.guardrail_name, "pre_call", f"BLOCK:{category or 'DEFAULT'}")
 
         self.add_standard_logging_guardrail_information_to_request_data(
             guardrail_json_response={"verdict": "BLOCK", "category": category or "DEFAULT"},
@@ -561,7 +557,7 @@ class ChildSafetyGuardrail(CustomGuardrail):
         blocked_message = await self._check_ai_reply(_response_text(response))
         if blocked_message is not None:
             _set_response_text(response, blocked_message)
-            _print_guardrail_trigger(self.guardrail_name, "post_call", f"BLOCK:{blocked_message[:60]}")
+            await record_guardrail_trigger(data, self.guardrail_name, "post_call", f"BLOCK:{blocked_message[:60]}")
             self.add_standard_logging_guardrail_information_to_request_data(
                 guardrail_json_response={"verdict": "BLOCK", "message": blocked_message},
                 request_data=data,
@@ -626,7 +622,7 @@ class ChildSafetyGuardrail(CustomGuardrail):
                 )
                 if blocked_message is not None:
                     assembled.choices[0].message.content = blocked_message
-                    _print_guardrail_trigger(self.guardrail_name, "post_call", f"BLOCK:{blocked_message[:60]}")
+                    await record_guardrail_trigger(request_data, self.guardrail_name, "post_call", f"BLOCK:{blocked_message[:60]}")
                     self.add_standard_logging_guardrail_information_to_request_data(
                         guardrail_json_response={"verdict": "BLOCK", "message": blocked_message},
                         request_data=request_data,

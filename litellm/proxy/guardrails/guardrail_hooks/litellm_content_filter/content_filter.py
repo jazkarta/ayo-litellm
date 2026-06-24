@@ -1837,11 +1837,14 @@ class ContentFilterGuardrail(CustomGuardrail):
             status = "guardrail_intervened"
             stage = "pre_call" if input_type == "request" else "post_call"
             matched = [d.get("keyword") or d.get("type") for d in detections]
-            print(
-                f"[GUARDRAIL TRIGGERED] name={self.guardrail_name} stage={stage} "
-                f"detail=content_filter:{matched}",
-                flush=True,
-            )
+            try:
+                from ayo_guardrails import record_guardrail_trigger
+
+                await record_guardrail_trigger(
+                    request_data, self.guardrail_name, stage, f"content_filter:{matched}"
+                )
+            except Exception as _e:
+                print(f"[AYO-GUARDRAIL] content_filter record failed: {_e}", flush=True)
             # Return a friendly violation message (200) instead of a hard 403 error.
             # Honors violation_message_template when configured, else a safe default.
             message = self.render_violation_message(
