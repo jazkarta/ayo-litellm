@@ -10,7 +10,7 @@ class MyCustomHandler(CustomLogger):
 
     async def async_log_success_event(self, kwargs, response_obj, start_time, end_time):
         print(f"On Async Success")
-        
+
         user_raw = kwargs.get('user')
         user_id = user_raw
         user_email = None
