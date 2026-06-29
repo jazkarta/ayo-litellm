@@ -598,13 +598,77 @@ class ChildSafetyGuardrail(CustomGuardrail):
         except StopAsyncIteration:
             return
 
-        # Only Chat Completions streams are assembled and evaluated here. Other stream
-        # shapes (e.g. Responses API events) are passed through untouched — buffering or
-        # rewriting them would corrupt the stream.
+        # A /v1/responses stream is a sequence of typed event objects whose `.type` starts
+        # with "response." (not ModelResponseStream). Buffer it, evaluate the assembled
+        # output text, and either replay the events or emit a synthetic block stream.
+        # Anything else is an unknown shape and is passed through untouched.
         if not isinstance(first, ModelResponseStream):
-            yield first
-            async for chunk in iterator:
-                yield chunk
+            first_type = getattr(first, "type", None)
+            if not (isinstance(first_type, str) and first_type.startswith("response.")):
+                yield first
+                async for chunk in iterator:
+                    yield chunk
+                return
+
+            from litellm.types.llms.openai import (
+                OutputTextDeltaEvent,
+                ResponseCompletedEvent,
+                ResponsesAPIStreamEvents,
+            )
+
+            events = [first]
+            async for event in iterator:
+                events.append(event)
+
+            completed = next(
+                (
+                    e
+                    for e in events
+                    if getattr(e, "type", None) == ResponsesAPIStreamEvents.RESPONSE_COMPLETED
+                ),
+                None,
+            )
+            # Without a completed event we can't build a clean replacement — fail open.
+            if completed is None:
+                for event in events:
+                    yield event
+                return
+
+            try:
+                text = completed.response.output_text or ""
+                if not text:
+                    text = "".join(
+                        e.delta for e in events if isinstance(e, OutputTextDeltaEvent)
+                    )
+                blocked_message = await self._check_ai_reply(text)
+                if blocked_message is not None:
+                    _set_response_text(completed.response, blocked_message)
+                    await record_guardrail_trigger(request_data, self.guardrail_name, "post_call", f"BLOCK:{blocked_message[:60]}")
+                    self.add_standard_logging_guardrail_information_to_request_data(
+                        guardrail_json_response={"verdict": "BLOCK", "message": blocked_message},
+                        request_data=request_data,
+                        guardrail_status="guardrail_intervened",
+                        event_type=GuardrailEventHooks.post_call,
+                    )
+                    yield OutputTextDeltaEvent(
+                        type=ResponsesAPIStreamEvents.OUTPUT_TEXT_DELTA,
+                        delta=blocked_message,
+                        item_id=completed.response.id,
+                        output_index=0,
+                        content_index=0,
+                    )
+                    yield ResponseCompletedEvent(
+                        type=ResponsesAPIStreamEvents.RESPONSE_COMPLETED,
+                        response=completed.response,
+                    )
+                    return
+            except Exception as e:
+                verbose_logger.warning(
+                    f"[ChildSafety post_call stream] Responses evaluator error: {e}"
+                )
+
+            for event in events:
+                yield event
             return
 
         chunks = [first]
