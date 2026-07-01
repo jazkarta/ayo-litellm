@@ -504,7 +504,7 @@ class ChildSafetyGuardrail(CustomGuardrail):
         return self._force_refusal_response(data, category or "DEFAULT")
 
     # Original non-streaming-only implementation — kept for reference, superseded by the
-    # _check_ai_reply helper below which is shared by the streaming and non-streaming hooks.
+    # _post_call_block_category helper below which is shared by the streaming and non-streaming hooks.
     #
     # async def async_post_call_success_hook(self, data, user_api_key_dict, response):
     #     """Check the AI response for persona slip-through."""
@@ -526,11 +526,10 @@ class ChildSafetyGuardrail(CustomGuardrail):
     #     except Exception as e:
     #         verbose_logger.warning(f"[ChildSafety post_call] Evaluator error: {e}")
 
-    async def _check_ai_reply(self, ai_reply: str):
+    async def _post_call_block_category(self, ai_reply: str):
         """
-        Run the post-call evaluator on an AI reply.
-        Returns a category-specific block message string if the reply should be blocked,
-        or None to allow it. Also returns None on evaluator error (fail open).
+        Run the post-call evaluator on an AI reply. Returns the violation category to
+        block on, or None to allow it (also None on evaluator error — fail open).
         """
         if not ai_reply:
             return None
@@ -547,19 +546,19 @@ class ChildSafetyGuardrail(CustomGuardrail):
                 verbose_logger.info(
                     f"[ChildSafety post_call] Blocked AI response ({category}): {ai_reply[:80]}"
                 )
-                return _get_blocked_message(category or "DEFAULT")
+                return category or "DEFAULT"
         except Exception as e:
             verbose_logger.warning(f"[ChildSafety post_call] Evaluator error: {e}")
         return None
 
     async def async_post_call_success_hook(self, data, user_api_key_dict, response):
         """Check the AI response for persona slip-through (non-streaming responses)."""
-        blocked_message = await self._check_ai_reply(_response_text(response))
-        if blocked_message is not None:
-            _set_response_text(response, blocked_message)
-            await record_guardrail_trigger(data, self.guardrail_name, "post_call", f"BLOCK:{blocked_message[:60]}")
+        category = await self._post_call_block_category(_response_text(response))
+        if category is not None:
+            _set_response_text(response, _get_blocked_message(category))
+            await record_guardrail_trigger(data, self.guardrail_name, "post_call", f"BLOCK:{category}")
             self.add_standard_logging_guardrail_information_to_request_data(
-                guardrail_json_response={"verdict": "BLOCK", "message": blocked_message},
+                guardrail_json_response={"verdict": "BLOCK", "category": category},
                 request_data=data,
                 guardrail_status="guardrail_intervened",
                 event_type=GuardrailEventHooks.post_call,
@@ -574,8 +573,8 @@ class ChildSafetyGuardrail(CustomGuardrail):
         The proxy only routes non-streaming responses to async_post_call_success_hook;
         streamed responses (LibreChat's default) come here instead. We buffer the whole
         stream, assemble it into a single response, run the same evaluator via
-        _check_ai_reply, and either replay the original chunks or emit one replacement
-        chunk carrying the block message.
+        _post_call_block_category, and either replay the original chunks or emit one
+        replacement chunk carrying the block message.
         """
         # Imported here to avoid a circular import at module load time.
         from litellm.main import stream_chunk_builder
@@ -640,19 +639,20 @@ class ChildSafetyGuardrail(CustomGuardrail):
                     text = "".join(
                         e.delta for e in events if isinstance(e, OutputTextDeltaEvent)
                     )
-                blocked_message = await self._check_ai_reply(text)
-                if blocked_message is not None:
-                    _set_response_text(completed.response, blocked_message)
-                    await record_guardrail_trigger(request_data, self.guardrail_name, "post_call", f"BLOCK:{blocked_message[:60]}")
+                category = await self._post_call_block_category(text)
+                if category is not None:
+                    message = _get_blocked_message(category)
+                    _set_response_text(completed.response, message)
+                    await record_guardrail_trigger(request_data, self.guardrail_name, "post_call", f"BLOCK:{category}")
                     self.add_standard_logging_guardrail_information_to_request_data(
-                        guardrail_json_response={"verdict": "BLOCK", "message": blocked_message},
+                        guardrail_json_response={"verdict": "BLOCK", "category": category},
                         request_data=request_data,
                         guardrail_status="guardrail_intervened",
                         event_type=GuardrailEventHooks.post_call,
                     )
                     yield OutputTextDeltaEvent(
                         type=ResponsesAPIStreamEvents.OUTPUT_TEXT_DELTA,
-                        delta=blocked_message,
+                        delta=message,
                         item_id=completed.response.id,
                         output_index=0,
                         content_index=0,
@@ -681,14 +681,14 @@ class ChildSafetyGuardrail(CustomGuardrail):
                 chunks=chunks, messages=request_data.get("messages")
             )
             if isinstance(assembled, ModelResponse):
-                blocked_message = await self._check_ai_reply(
+                category = await self._post_call_block_category(
                     assembled.choices[0].message.content or ""
                 )
-                if blocked_message is not None:
-                    assembled.choices[0].message.content = blocked_message
-                    await record_guardrail_trigger(request_data, self.guardrail_name, "post_call", f"BLOCK:{blocked_message[:60]}")
+                if category is not None:
+                    assembled.choices[0].message.content = _get_blocked_message(category)
+                    await record_guardrail_trigger(request_data, self.guardrail_name, "post_call", f"BLOCK:{category}")
                     self.add_standard_logging_guardrail_information_to_request_data(
-                        guardrail_json_response={"verdict": "BLOCK", "message": blocked_message},
+                        guardrail_json_response={"verdict": "BLOCK", "category": category},
                         request_data=request_data,
                         guardrail_status="guardrail_intervened",
                         event_type=GuardrailEventHooks.post_call,
