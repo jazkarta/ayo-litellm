@@ -298,12 +298,23 @@ class CustomGuardrail(CustomLogger):
         self,
         requested_guardrails: Union[List[str], List[Dict[str, DynamicGuardrailParams]]],
     ) -> bool:
+        # Match by guardrail_id. The id->instance map lives in the registry; look up
+        # whether any requested id resolves to this instance. Imported lazily to avoid
+        # a circular import at module load time.
+        from litellm.proxy.guardrails.guardrail_registry import (
+            IN_MEMORY_GUARDRAIL_HANDLER,
+        )
+
+        id_to_guardrail = IN_MEMORY_GUARDRAIL_HANDLER.guardrail_id_to_custom_guardrail
         for _guardrail in requested_guardrails:
             if isinstance(_guardrail, dict):
-                if self.guardrail_name in _guardrail:
-                    return True
+                requested_ids = list(_guardrail.keys())
             elif isinstance(_guardrail, str):
-                if self.guardrail_name == _guardrail:
+                requested_ids = [_guardrail]
+            else:
+                continue
+            for guardrail_id in requested_ids:
+                if id_to_guardrail.get(guardrail_id) is self:
                     return True
 
         return False

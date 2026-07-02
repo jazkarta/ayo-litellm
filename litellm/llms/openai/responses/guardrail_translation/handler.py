@@ -129,11 +129,20 @@ class OpenAIResponsesHandler(BaseTranslation):
         task_mappings: List[Tuple[int, Optional[int]]] = []
         original_tools_list: List[Dict[str, Any]] = list(data.get("tools") or [])
 
-        # Step 1: Extract all text content, images, and tools
-        for msg_idx, message in enumerate(input_data):
+        # Scan only the latest user message, never prior history, so a keyword in an
+        # earlier turn (user or model-generated) cannot cascade into blocking later turns.
+        last_user_idx = next(
+            (
+                i
+                for i in range(len(input_data) - 1, -1, -1)
+                if isinstance(input_data[i], dict) and input_data[i].get("role") == "user"
+            ),
+            None,
+        )
+        if last_user_idx is not None:
             self._extract_input_text_and_images(
-                message=message,
-                msg_idx=msg_idx,
+                message=input_data[last_user_idx],
+                msg_idx=last_user_idx,
                 texts_to_check=texts_to_check,
                 images_to_check=images_to_check,
                 task_mappings=task_mappings,

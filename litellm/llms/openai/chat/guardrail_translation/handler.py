@@ -66,11 +66,20 @@ class OpenAIChatCompletionsHandler(BaseTranslation):
         # content_index is None for string content, int for list content
         # tool_call_task_mappings: Track (message_index, tool_call_index) for each tool call
 
-        # Step 1: Extract all text content, images, and tool calls
-        for msg_idx, message in enumerate(messages):
+        # Scan only the latest user message, never prior history, so a keyword in an
+        # earlier turn (user or model-generated) cannot cascade into blocking later turns.
+        last_user_idx = next(
+            (
+                i
+                for i in range(len(messages) - 1, -1, -1)
+                if isinstance(messages[i], dict) and messages[i].get("role") == "user"
+            ),
+            None,
+        )
+        if last_user_idx is not None:
             self._extract_inputs(
-                message=message,
-                msg_idx=msg_idx,
+                message=messages[last_user_idx],
+                msg_idx=last_user_idx,
                 texts_to_check=texts_to_check,
                 images_to_check=images_to_check,
                 tool_calls_to_check=tool_calls_to_check,
