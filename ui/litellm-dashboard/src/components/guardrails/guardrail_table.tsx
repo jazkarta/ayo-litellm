@@ -167,14 +167,14 @@ const GuardrailTable: React.FC<GuardrailTableProps> = ({
           <div className="flex space-x-2">
             {isConfigGuardrail ? (
               <>
-                <Tooltip title="Config guardrail cannot be edited on the dashboard. Please edit it from the config file.">
+                {/* <Tooltip title="Config guardrail cannot be edited on the dashboard. Please edit it from the config file.">
                   <Icon
                     icon={PencilIcon}
                     size="sm"
                     className="cursor-not-allowed text-gray-400"
                     aria-label="Edit guardrail (config)"
                   />
-                </Tooltip>
+                </Tooltip> */}
                 <Tooltip title="Config guardrail cannot be deleted on the dashboard. Please delete it from the config file.">
                   <Icon
                     data-testid="config-delete-icon"
@@ -188,14 +188,14 @@ const GuardrailTable: React.FC<GuardrailTableProps> = ({
               </>
             ) : (
               <>
-                <Tooltip title="Edit guardrail">
+                {/* <Tooltip title="Edit guardrail">
                   <Icon
                     icon={PencilIcon}
                     size="sm"
                     onClick={() => handleEditClick(guardrail)}
                     className="cursor-pointer hover:text-blue-500"
                   />
-                </Tooltip>
+                </Tooltip> */}
                 <Tooltip title="Delete guardrail">
                   <Icon
                     icon={TrashIcon}
