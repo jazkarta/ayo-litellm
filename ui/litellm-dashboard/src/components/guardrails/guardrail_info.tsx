@@ -19,13 +19,18 @@ import {
   Text,
   Title,
 } from "@tremor/react";
-import { Button, Divider, Form, Input, Select, Tooltip } from "antd";
+import { Button, Divider, Form, Input, Select, Tag, Tooltip } from "antd";
 import { CheckIcon, CopyIcon } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
 import NotificationsManager from "../molecules/notifications_manager";
 import ContentFilterManager, { formatContentFilterDataForAPI } from "./content_filter/ContentFilterManager";
 import CustomCodeModal, { EditGuardrailData } from "./custom_code/CustomCodeModal";
-import { getGuardrailLogoAndName, guardrail_provider_map } from "./guardrail_info_helpers";
+import {
+  getGuardrailLogoAndName,
+  getGuardrailModes,
+  guardrail_provider_map,
+  guardrailModeDescriptions,
+} from "./guardrail_info_helpers";
 import GuardrailOptionalParams from "./guardrail_optional_params";
 import GuardrailProviderFields from "./guardrail_provider_fields";
 import PiiConfiguration from "./pii_configuration";
@@ -276,6 +281,12 @@ const GuardrailInfoView: React.FC<GuardrailInfoProps> = ({ guardrailId, onClose,
       // Only include default_on if it has changed
       if (values.default_on !== guardrailData.litellm_params?.default_on) {
         updateData.litellm_params.default_on = values.default_on;
+      }
+
+      const originalModes = getGuardrailModes(guardrailData.litellm_params?.mode);
+      const newModes = getGuardrailModes(values.mode);
+      if ([...originalModes].sort().join() !== [...newModes].sort().join()) {
+        updateData.litellm_params.mode = newModes;
       }
 
       // Only include guardrail_info if it has changed
@@ -648,6 +659,7 @@ const GuardrailInfoView: React.FC<GuardrailInfoProps> = ({ guardrailId, onClose,
                     initialValues={{
                       guardrail_name: guardrailData.guardrail_name,
                       ...guardrailData.litellm_params,
+                      mode: getGuardrailModes(guardrailData.litellm_params?.mode),
                       guardrail_info: guardrailData.guardrail_info
                         ? JSON.stringify(guardrailData.guardrail_info, null, 2)
                         : "",
@@ -670,6 +682,33 @@ const GuardrailInfoView: React.FC<GuardrailInfoProps> = ({ guardrailId, onClose,
                       <Select>
                         <Select.Option value={true}>Yes</Select.Option>
                         <Select.Option value={false}>No</Select.Option>
+                      </Select>
+                    </Form.Item>
+
+                    <Form.Item
+                      label="Mode"
+                      name="mode"
+                      tooltip="How the guardrail should be applied"
+                      rules={[{ required: true, message: "Please select a mode" }]}
+                    >
+                      <Select mode="multiple" optionLabelProp="label">
+                        {(guardrailSettings?.supported_modes || ["pre_call", "post_call"]).map((mode) => (
+                          <Select.Option key={mode} value={mode} label={mode}>
+                            <div>
+                              <div>
+                                <strong>{mode}</strong>
+                                {mode === "pre_call" && (
+                                  <Tag color="green" style={{ marginLeft: "8px" }}>
+                                    Recommended
+                                  </Tag>
+                                )}
+                              </div>
+                              <div style={{ fontSize: "12px", color: "#888" }}>
+                                {guardrailModeDescriptions[mode as keyof typeof guardrailModeDescriptions]}
+                              </div>
+                            </div>
+                          </Select.Option>
+                        ))}
                       </Select>
                     </Form.Item>
 

@@ -7,6 +7,7 @@ import {
   getGuardrailProviders,
   guardrail_provider_map,
   guardrailLogoMap,
+  guardrailModeDescriptions as modeDescriptions,
   populateGuardrailProviderMap,
   populateGuardrailProviders,
   shouldRenderContentFilterConfigSettings,
@@ -19,16 +20,6 @@ import ToolPermissionRulesEditor, { ToolPermissionConfig } from "./tool_permissi
 
 const { Title, Text, Link } = Typography;
 const { Option } = Select;
-
-// Define human-friendly descriptions for each mode
-const modeDescriptions = {
-  pre_call: "Before LLM Call - Runs before the LLM call and checks the input (Recommended)",
-  during_call: "During LLM Call - Runs in parallel with the LLM call, with response held until check completes",
-  post_call: "After LLM Call - Runs after the LLM call and checks only the output",
-  logging_only: "Logging Only - Only runs on logging callbacks without affecting the LLM call",
-  pre_mcp_call: "Before MCP Tool Call - Runs before MCP tool execution and validates tool calls",
-  during_mcp_call: "During MCP Tool Call - Runs in parallel with MCP tool execution for monitoring",
-};
 
 interface GuardrailPreset {
   provider: string;
