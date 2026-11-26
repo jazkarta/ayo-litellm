@@ -4,6 +4,20 @@ ARG LITELLM_BUILD_IMAGE=cgr.dev/chainguard/wolfi-base@sha256:238642d42c561393647
 # Runtime image
 ARG LITELLM_RUNTIME_IMAGE=cgr.dev/chainguard/wolfi-base@sha256:238642d42c5613936474d00b900c4e65fb6f637d8991c913403ff09a09cf43a3
 
+# Admin UI build stage
+FROM node:22.16.0-bookworm-slim AS ui-builder
+
+WORKDIR /ui
+
+ENV NEXT_TELEMETRY_DISABLED=1 \
+    NODE_OPTIONS=--max-old-space-size=4096
+
+COPY ui/litellm-dashboard/package.json ui/litellm-dashboard/package-lock.json ./
+RUN npm ci
+
+COPY ui/litellm-dashboard/ ./
+RUN npm run build
+
 # Builder stage
 FROM $LITELLM_BUILD_IMAGE AS builder
 
@@ -19,6 +33,10 @@ RUN python -m pip install build
 
 # Copy the current directory contents into the container at /app
 COPY . .
+
+# Replace the committed UI build with the one built from source
+RUN rm -rf litellm/proxy/_experimental/out
+COPY --from=ui-builder /ui/out/ litellm/proxy/_experimental/out/
 
 # Build Admin UI
 # Convert Windows line endings to Unix and make executable
