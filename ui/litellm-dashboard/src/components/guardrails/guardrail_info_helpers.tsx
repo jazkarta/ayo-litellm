@@ -41,6 +41,20 @@ export const getGuardrailProviders = () => {
   return Object.keys(DynamicGuardrailProviders).length > 0 ? DynamicGuardrailProviders : GuardrailProviders;
 };
 
+export const guardrailModeDescriptions = {
+  pre_call: "Before LLM Call - Runs before the LLM call and checks the input (Recommended)",
+  during_call: "During LLM Call - Runs in parallel with the LLM call, with response held until check completes",
+  post_call: "After LLM Call - Runs after the LLM call and checks only the output",
+  logging_only: "Logging Only - Only runs on logging callbacks without affecting the LLM call",
+  pre_mcp_call: "Before MCP Tool Call - Runs before MCP tool execution and validates tool calls",
+  during_mcp_call: "During MCP Tool Call - Runs in parallel with MCP tool execution for monitoring",
+};
+
+export const getGuardrailModes = (mode?: string | string[] | null): string[] => {
+  if (!mode) return [];
+  return Array.isArray(mode) ? mode : [mode];
+};
+
 export const guardrail_provider_map: Record<string, string> = {
   PresidioPII: "presidio",
   Bedrock: "bedrock",
